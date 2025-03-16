@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="max-w-lg w-full bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+        <h2 class="text-2xl font-bold mb-4">📸 Instagram Downloader</h2>
+        <input type="text" id="urlInput" placeholder="Enter Instagram URL"
+            class="w-full p-3 text-black rounded-lg focus:outline-none mb-3" />
+        <button onclick="downloadMedia()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg w-full">
+            Download
+        </button>
+        <p id="message" class="text-red-400 mt-2 hidden"></p>
+        <div id="loader" class="hidden mt-4">⏳ Fetching media...</div>
+        <div id="mediaContainer" class="mt-4 space-y-2"></div>
+    </div>
+
+    <script>
+        async function downloadMedia() {
+            const url = document.getElementById('urlInput').value.trim();
+            const message = document.getElementById('message');
+            const loader = document.getElementById('loader');
+            const mediaContainer = document.getElementById('mediaContainer');
+
+            if (!url) {
+                message.textContent = "⚠️ Please enter a valid Instagram URL.";
+                message.classList.remove("hidden");
+                return;
+            }
+
+            message.classList.add("hidden");
+            loader.classList.remove("hidden");
+            mediaContainer.innerHTML = '';
+
+            try {
+                const response = await fetch(`/download?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                loader.classList.add("hidden");
+
+                if (!data.media || data.media.length === 0) {
+                    message.textContent = "⚠️ No media found for this URL.";
+                    message.classList.remove("hidden");
+                    return;
+                }
+
+                data.media.forEach(item => {
+                    const element = item.includes(".mp4") ? 
+                        `<video src="${item}" controls class="w-full rounded-lg"></video>` :
+                        `<img src="${item}" class="w-full rounded-lg" />`;
+                    mediaContainer.innerHTML += element;
+                });
+
+            } catch (error) {
+                loader.classList.add("hidden");
+                message.textContent = "⚠️ Error fetching media. Please try again.";
+                message.classList.remove("hidden");
+            }
+        }
+    </script>
+</body>
+</html>
